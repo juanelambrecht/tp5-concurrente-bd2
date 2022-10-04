@@ -1,8 +1,7 @@
 package ar.unrn.tp.modelo;
 
-import java.util.Date;
+import java.util.Map;
 
-import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -21,6 +20,7 @@ public class Productos {
 	private CategoriaProducto categoria;
 	@ManyToOne(fetch = FetchType.EAGER)
 	private Marca marca;
+	private Long version;
 
 	public Productos() {
 		// TODO Auto-generated constructor stub
@@ -80,6 +80,16 @@ public class Productos {
 
 	public void setMarca(Marca marca) {
 		this.marca = marca;
+	}
+
+	public Map<String, Object> Map() {
+
+		return Map.of("id", id, "codigo", codigo, "descripcion", descripcion, "precio", precio, "categoria",
+				categoria.descripcionCategoria(), "marca", marca.getNombreMarca());
+	}
+
+	public void setVersion(Long version) {
+		this.version = version;
 	}
 
 }

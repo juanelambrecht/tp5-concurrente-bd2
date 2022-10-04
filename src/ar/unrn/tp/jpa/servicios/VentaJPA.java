@@ -1,5 +1,7 @@
 package ar.unrn.tp.jpa.servicios;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -7,6 +9,7 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
+import javax.persistence.LockModeType;
 import javax.persistence.Persistence;
 import javax.persistence.TemporalType;
 import javax.persistence.TypedQuery;
@@ -14,6 +17,7 @@ import javax.persistence.TypedQuery;
 import ar.unrn.tp.api.VentaService;
 import ar.unrn.tp.modelo.Carrito;
 import ar.unrn.tp.modelo.Clientes;
+import ar.unrn.tp.modelo.NextNumber;
 import ar.unrn.tp.modelo.OrdenDePago;
 import ar.unrn.tp.modelo.Productos;
 import ar.unrn.tp.modelo.Promociones;
@@ -44,16 +48,29 @@ public class VentaJPA implements VentaService {
 			promociones.setParameter(1, new Date(), TemporalType.DATE);
 			List<Promociones> listaPromociones = promociones.getResultList();
 
+			// Numero unico irrepetible --> Manejo de concurrencia
+			int anioActual = new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getYear();
+			System.out.println(anioActual);
+			TypedQuery<NextNumber> query = em.createQuery("from NextNumber where anio = :anioActual", NextNumber.class);
+			query.setParameter("anioActual", anioActual);
+			query.setLockMode(LockModeType.PESSIMISTIC_WRITE);
+			//NextNumber number = new NextNumber(anioActual, 1);
+			//Si no existe creo un registro con el anio actual mas 1
+			 NextNumber number = query.getSingleResult();
+			 number.setearSiguiente();
+
 			Carrito carrito = new Carrito((ArrayList<Promociones>) listaPromociones);
 			carrito.agregarListaProductos((ArrayList<Productos>) productosCompra);
 			carrito.agregarTarjeta(tarjeta);
 
 			Ventas venta = carrito.realizarCompra(cliente);
+			venta.setUniqueNumber(number.uniqueNumber());
 			em.persist(venta);
 
 			tx.commit();
 		} catch (Exception e) {
 			tx.rollback();
+			e.printStackTrace();
 			throw new RuntimeException(e);
 		} finally {
 			if (em != null && em.isOpen())

@@ -38,7 +38,7 @@ public class ProductoJPA implements ProductoService {
 
 	@Override
 	public void modificarProducto(Long idProducto, int codigo, String descripcion, double precio, Long idCategoria,
-			Long idMarca) {
+			Long idMarca, Long version) {
 		EntityManagerFactory emf = Persistence.createEntityManagerFactory("jpa-mysql");
 		EntityManager em = emf.createEntityManager();
 		EntityTransaction tx = em.getTransaction();
@@ -53,7 +53,7 @@ public class ProductoJPA implements ProductoService {
 			producto.setPrecio(precio);
 			producto.setMarca(marca);
 			producto.setCategoria(categoria);
-
+			producto.setVersion(version);
 			tx.commit();
 		} catch (Exception e) {
 			tx.rollback();

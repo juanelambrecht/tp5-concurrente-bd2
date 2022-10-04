@@ -5,8 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import com.google.gson.Gson;
-
 import ar.unrn.tp.api.ClienteService;
 import ar.unrn.tp.api.DescuentoService;
 import ar.unrn.tp.api.ProductoService;
@@ -17,6 +15,7 @@ import ar.unrn.tp.modelo.Promociones;
 import ar.unrn.tp.modelo.Tarjetas;
 import io.javalin.Javalin;
 import io.javalin.http.Handler;
+import com.google.gson.Gson;
 
 public class WebAPI {
 	ClienteService clienteService;
@@ -39,20 +38,20 @@ public class WebAPI {
 			config.enableCorsForAllOrigins();
 		}).start(this.puerto);
 		javalin.get("/ventasService/precio", obtenerPrecio());
-		javalin.get("/clienteService", obtenerClientes());
-		javalin.get("/clienteService/tarjetas/{id}", obtenerTarjetas());
-		javalin.get("/productos", obtenerProductos());
-		javalin.get("/descuentos", obtenerDescuentos());
-		javalin.post("/clienteService", crearCliente());
-		javalin.post("/clienteService/tarjetas/{id}", agregarTarjeta());
-		javalin.post("/ventasService", crearVenta());
-		javalin.put("/clienteService/{id}", modificarCliente());
+		javalin.get("/clientes", Clientes());
+		javalin.get("/clientes/tarjetas/{id}", Tarjetas());
+		javalin.get("/productos", Productos());
+		javalin.get("/descuentos", Descuentos());
+		// javalin.post("/clienteNuevo", newCliente());
+		// javalin.post("/cliente/tarjetas/{id}", newTarjeta());
+		javalin.post("/ventaNueva", newVenta());
+		// javalin.put("/clienteService/{id}", modificarCliente());
 		javalin.exception(Exception.class, (e, ctx) -> {
 			ctx.json(Map.of("result", "error", "message", "algo salio mal.: " + e.getMessage())).status(400);
 		});
 	}
 
-	private Handler crearCliente() {
+	private Handler newCliente() {
 		return ctx -> {
 			ClienteDTO dto = ctx.bodyAsClass(ClienteDTO.class);
 			this.clienteService.crearCliente(dto.getNombre(), dto.getApellido(), dto.getDni(), dto.getEmail());
@@ -60,14 +59,14 @@ public class WebAPI {
 		};
 	}
 
-	private Handler obtenerClientes() {
+	private Handler Clientes() {
 		return ctx -> {
 			var client = this.clienteService.listarClientes();
 			var list = new ArrayList<Map<String, Object>>();
 			for (Clientes cliente1 : client) {
-				list.add((Map<String, Object>) cliente1);
+				list.add(cliente1.Map());
 			}
-			ctx.json(Map.of("result", "success", "clienteService", list));
+			ctx.json(Map.of("result", "success", "clientes", list));
 		};
 	}
 
@@ -80,7 +79,7 @@ public class WebAPI {
 		};
 	}
 
-	private Handler agregarTarjeta() {
+	private Handler newTarjeta() {
 		return ctx -> {
 			TarjetaDTO tarjetaDto = ctx.bodyAsClass(TarjetaDTO.class);
 			Long id = Long.valueOf(ctx.pathParam("id"));
@@ -90,48 +89,50 @@ public class WebAPI {
 		};
 	}
 
-	private Handler obtenerTarjetas() {
+	private Handler Tarjetas() {
 		return ctx -> {
 			var id = Long.valueOf(ctx.pathParam("id"));
 			var tarjetasBD = this.clienteService.listarTarjetas(id);
 			var list = new ArrayList<Map<String, Object>>();
 			for (Tarjetas t : tarjetasBD) {
-				list.add((Map<String, Object>) t);
+				list.add(t.Map());
 			}
 			ctx.json(Map.of("result", "success", "tarjetas", list));
 		};
 	}
 
-	private Handler obtenerProductos() {
+	private Handler Productos() {
 		return ctx -> {
 			var productosBD = this.productosService.listarProductos();
 			var list = new ArrayList<Map<String, Object>>();
 			for (Productos producto : productosBD) {
-				list.add((Map<String, Object>) producto);
+				list.add(producto.Map());
 			}
-			ctx.json(Map.of("result", "success", "productosService", list));
+			ctx.json(Map.of("result", "success", "productos", list));
 		};
 	}
 
-	private Handler obtenerDescuentos() {
+	private Handler Descuentos() {
 		return ctx -> {
 			var descuentos = this.descuentoService.listarDescuentos();
 			var list = new ArrayList<Map<String, Object>>();
 			for (Promociones descuento : descuentos) {
-				list.add((Map<String, Object>) descuento);
+				System.out.println(descuento.Map());
+				list.add(descuento.Map());
 			}
 			ctx.json(Map.of("result", "success", "descuentos", list));
 		};
 	}
 
-	private Handler crearVenta() {
+	private Handler newVenta() {
 		return ctx -> {
 			Gson gson = new Gson();
 			var idCliente = ctx.queryParam("cliente");
 			var idTarjeta = ctx.queryParam("tarjeta");
 			var productosService = ctx.bodyAsClass(Long[].class);
-
 			List<Long> productosServiceList = Arrays.asList(productosService);
+			// List<Long> productosServiceList = new ArrayList<Long>();
+			// productosServiceList.add(1009L);
 			Long clienteId = gson.fromJson(idCliente, Long.class);
 			Long tarjetaId = gson.fromJson(idTarjeta, Long.class);
 

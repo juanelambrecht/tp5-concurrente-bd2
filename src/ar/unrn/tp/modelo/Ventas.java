@@ -25,6 +25,7 @@ public class Ventas {
 	@OneToMany(cascade = CascadeType.PERSIST)
 	private List<Productos> productos;
 	double montoTotal;
+	private String uniqueNumber;
 
 	public Ventas() {
 
@@ -42,6 +43,14 @@ public class Ventas {
 	public String toString() {
 		return "Ventas [id=" + id + ", fecha=" + fecha + ", hora=" + hora + ", cliente=" + cliente + ", productos="
 				+ productos + ", montoTotal=" + montoTotal + "]";
+	}
+
+	public String getUniqueNumber() {
+		return uniqueNumber;
+	}
+
+	public void setUniqueNumber(String uniqueNumber) {
+		this.uniqueNumber = uniqueNumber;
 	}
 
 }
