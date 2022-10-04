@@ -6,8 +6,8 @@ import javax.persistence.Id;
 @Entity
 public class NextNumber {
 	@Id
+	@GeneratedValue
 	private Long id;
-
 	private int anio;
 	private int numero;
 

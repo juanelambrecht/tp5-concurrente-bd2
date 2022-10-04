@@ -10,6 +10,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.LockModeType;
+import javax.persistence.NoResultException;
 import javax.persistence.Persistence;
 import javax.persistence.TemporalType;
 import javax.persistence.TypedQuery;
@@ -54,10 +55,16 @@ public class VentaJPA implements VentaService {
 			TypedQuery<NextNumber> query = em.createQuery("from NextNumber where anio = :anioActual", NextNumber.class);
 			query.setParameter("anioActual", anioActual);
 			query.setLockMode(LockModeType.PESSIMISTIC_WRITE);
-			//NextNumber number = new NextNumber(anioActual, 1);
-			//Si no existe creo un registro con el anio actual mas 1
-			 NextNumber number = query.getSingleResult();
-			 number.setearSiguiente();
+
+			// Si no existe creo un registro con el anio actual mas 1
+			NextNumber number = null;
+			try {
+				number = query.getSingleResult();
+				number.setearSiguiente();
+			} catch (NoResultException e) {
+				number = new NextNumber(anioActual, 1);
+				em.persist(number);
+			}
 
 			Carrito carrito = new Carrito((ArrayList<Promociones>) listaPromociones);
 			carrito.agregarListaProductos((ArrayList<Productos>) productosCompra);

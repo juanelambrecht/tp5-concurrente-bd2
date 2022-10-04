@@ -59,7 +59,7 @@ public class Main {
 
 		VentaService ventaCarrito = new VentaJPA();
 		List<Long> productos = new ArrayList<Long>();
-		productos.add(5L);
+		productos.add(13L);
 		ventaCarrito.realizarVenta(1L, productos, 10L);
 		// System.out.println(ventaCarrito.calcularMonto(productos, 1L));
 		// ventaCarrito.ventas().stream().forEach((p)->{System.out.println(p.toString());});
